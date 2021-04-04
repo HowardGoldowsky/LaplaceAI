@@ -26,7 +26,7 @@ durationSeconds = 1;                                                    % durati
 impulseMoment = [0.3, 0.9];                                             % seconds
 
 Ck = 1;                                                                 % Initialize Ck for Post 1930 estimate of inverse Laplace transform
-k = 4;                                                                  % used for calc of inverse Laplace; k = 4 was used in the cited paper
+k = 6;                                                                  % used for calc of inverse Laplace; k = 4 was used in the cited paper
 
 t = 0:0.001:durationSeconds;                                            % time vector (seconds, 1 ms resolution)
 nSamples = length(t);
@@ -54,10 +54,13 @@ for idx = idx_t_prime                                                   % superi
     
 end % for idx = idx_t_prime
 
+basisTranslated = basis .* repmat(exp(-s*.5)',1,1001);
+
 if (SHOWBASIS)
     figure;
     for i = 1:25  
-        plot(t,basis(i,:),'-'); hold on;
+        plot(t,basis(i,:),'k-'); hold on;
+        plot(t,basisTranslated(i,:),'g-'); hold on;
     end
     title({'Laplace Transform, F,','with 25 Slowest Time Constants'})
     xlabel('Time (s)')
@@ -68,14 +71,20 @@ end
 % represent the firing rates of the cells in the hippocampus. 
 
 der = basis(:,end);
+derTranslated = basisTranslated(:,end);
 for iter = 1:k                                                          % take k-th derivative  
     der = diff(der);
+    derTranslated = diff(derTranslated);
 end
+
 f_tilde = Ck * s(1:numel(der)).^(k+1) .* der';                          % Post approximation              
 t_star = -(1/k) * s(1:numel(der));
 
+f_tildeTranslated = Ck * s(1:numel(derTranslated)).^(k+1) .* derTranslated';                          % Post approximation              
+t_starTranslated = -(1/k) * s(1:numel(derTranslated));
+
 figure;
-plot(t_star,f_tilde);
+plot(t_star,f_tilde);hold on; plot(t_star,f_tildeTranslated);
 legend('f','f_tilde');
 title({'Inverse Laplace Transform','Remembered Signal'})
 xlabel('Past Time')
