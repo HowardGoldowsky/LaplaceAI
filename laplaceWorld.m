@@ -18,7 +18,7 @@
 
 % Initialize scenario
 clear;
-[pos,f,idx,display,nSamples] = initScenario();                   
+[pos,f,landmarkIDX,display,nSamples] = initScenario();                   
 
 % Initialize Agent
 numCellsEC = 100;                                       % number of cells in agent's Entorhinal Cortex (EC), the Laplace domain
@@ -27,8 +27,19 @@ Ck = .072*(1:k);                                        % Initialize Ck for Post
 robot = Agent(k,Ck,numCellsEC,nSamples);                % construct the virtual robot agent
 
 % Train the robot by leading it from the origin to the landmark.
-robot = robot.buildLaplaceRepresentation(pos,f,idx);
+robot = robot.buildLaplaceRepresentation(pos,f,landmarkIDX);
 [f_tilde,x_star] = robot.estimateInverseLaplace();
+
+% Inform the robot of a via point, a random point within the [2 x 2] meter
+% grid world.
+
+% Calculate velocity vector estimate to via point
+
+% Move to the via point
+
+% Calculate velocity vector estimate back to origin
+
+% Move back to origin
 
 % Translate
 delta = 0.5; % seconds

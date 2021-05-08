@@ -21,20 +21,21 @@ classdef Agent
             
         end
         
-        function obj = buildLaplaceRepresentation(obj,pos,f,idx_x_prime)   
+        function obj = buildLaplaceRepresentation(obj,pos,f,landmarkIDX)   
             
             % Builds a Laplace Transform 
             %
             % INPUT:
-            %   t: time vector (independent axis for function, f)
-            %   f: function from which to build the Laplace Transform
+            %   pos:        independent axis for the function f
+            %   f:          function from which to build the Laplace Transform
+            %   landmarkIDX:index of landmark in discrete units 
             %
             % OUTPUT:
             %   laplaceRep: This is really the Laplace Transform over time [need
             %   to change this name, because "laplaceRep" is not really
             %   representative of what the variable contains.
       
-            for idx = idx_x_prime.x                                                         % superimpose multiple impulse functions, one for each non-zero sample in f   
+            for idx = landmarkIDX.x                                                         % superimpose multiple impulse functions, one for each non-zero landmark in f   
                 for i = 1:length(obj.s)                                                     % for each decay rate
                     tmpBasis = zeros(1,length(pos.x));                                      % initialize the i-th basis function
                     tmpBasis(idx:end) = f.x(idx)*exp(-pos.x(1:end-idx+1)*obj.s(i));         % build the i-th basis function 
@@ -50,13 +51,13 @@ classdef Agent
             % approximation (1930).
             %
             % INPUT:
-            %   Agent class
+            % Agent class
             %   laplaceRep: F(s), the Laplace representation 
-            %   Ck: scaling constant
+            %   Ck:         scaling constant
             %
             % OUTPUT:
-            %   f_tilde: estimate of landmark position
-            %   x_star: independent axis on which f_tilde exists
+            %   f_tilde:    estimate of landmark position
+            %   x_star:     log-scale independent axis on which f_tilde exists
             
             der = obj.laplaceRep.x(:,end);                                                      
             for iter = 1:obj.k                                                          % take k-th derivative  
@@ -69,12 +70,46 @@ classdef Agent
         
         function obj = translateLaplaceRepresentation(obj,delta)  
             
-            % Apply the Laplace translation operator, multiplication in the
+            % Apply the unitary Laplace translation operator, multiplication in the
             % Laplace domain by an exponential function of s. We do this
             % here for every time in which the Laplace represention exists.
             
             [~,nCol] = size(obj.laplaceRep.x);
             obj.laplaceRep.x = obj.laplaceRep.x .* repmat(exp(-obj.s * delta)',1,nCol);  
+            
+        end
+        
+        function obj = convolutionLaplaceRepresentation(obj,varargin)  
+            
+            % Apply the binary convolution operator in the Laplace domain.
+            % This is pointwise multiplication of two Laplace representations.
+            % Computes L(f(x)*g(x)) = L(F(s)G(s)), with the inverse becoming 
+            % [f+g](x).
+            %
+            % INPUT
+            %   F(s):   Laplace representation internal to agent's working memory
+            %   G(s):   Laplace representation internal to agent's working
+            %   memory or brought into working memory from long-term memory
+            %
+            % OUTPUT:
+            %   F(s)G(s)
+            
+        end
+        
+        function obj = crossCorrLaplaceRepresentation(obj,varargin)  
+            
+            % Apply the binary cross-correlation operator in the Laplace domain.
+            % This is pointwise multiplication of two Laplace representations, one flipped.
+            % Computes L(f(x)#g(x)) = L(F(s)G(-s)), with the inverse becoming
+            % [f-g](x).
+            %
+            % INPUT
+            %   F(s):   Laplace representation internal to agent's working memory
+            %   G(s):   Laplace representation internal to agent's working
+            %   memory or brought into working memory from long-term memory
+            %
+            % OUTPUT:
+            %   F(s)G(-s)
             
         end
                 

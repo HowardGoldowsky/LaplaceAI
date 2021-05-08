@@ -1,4 +1,4 @@
-function [pos,f,idx,display,nSamples] = initScenario()
+function [pos,f,landmarkIDX,display,nSamples] = initScenario()
 
     % User chosen params
     % x and y positions are analog distances. idx is the index into the
@@ -17,10 +17,10 @@ function [pos,f,idx,display,nSamples] = initScenario()
     % Derived params
     f.x = zeros(nSamples.x,1);                                          % init external driving function; see Equation 2
     f.y = zeros(nSamples.y,1);                                          % init external driving function; see Equation 2
-    idx.x = getIndexToLandmark(landmarkPos.x,nSamples.x,dimWidth.x);    % index to landmark x dimension
-    idx.y = getIndexToLandmark(landmarkPos.y,nSamples.y,dimWidth.y);    % index to landmark y dimension
-    f.x(idx.x) = 1;                                                     % delta function at impulse moments to represent landmark
-    f.y(idx.y) = 1;                                                     % delta function at impulse moments to represent landmark
+    landmarkIDX.x = getIndexToLandmark(landmarkPos.x,nSamples.x,dimWidth.x);    % index to landmark x dimension
+    landmarkIDX.y = getIndexToLandmark(landmarkPos.y,nSamples.y,dimWidth.y);    % index to landmark y dimension
+    f.x(landmarkIDX.x) = 1;                                                     % delta function at impulse moments to represent landmark
+    f.y(landmarkIDX.y) = 1;                                                     % delta function at impulse moments to represent landmark
     
     % Display flags
     display.SHOWBASIS = 1;
