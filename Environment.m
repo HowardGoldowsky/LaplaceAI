@@ -11,7 +11,7 @@ classdef Environment
     
     methods
         
-        function obj = Environment(letter)          % constructor
+        function obj = Environment(letter)          % Constructor
             obj = buildAgentEnv(letter);
         end
         

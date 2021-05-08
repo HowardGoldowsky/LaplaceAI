@@ -3,25 +3,18 @@ classdef Agent
     % Agent object
     
     properties
-        s                       % [1 x N], decay rates in agent's entorhinal cortex cell assembly, Laplace representation's independent variable
-        k                       % accuracy of inverse Laplace estimation, k = 4 was used in the cited paper
-        Ck                      % [1 x k], constants used in inverse Laplace estimate
-        laplaceRep              % [N x numSamples], agent's Laplace representation, X dimension
+        currentPos  WorkingMemory       % [N x numSamples] per dimension, agent's current position as a Laplace representation within working memory
+        futurePos   WorkingMemory       % [N x numSamples] per dimension, agent's future position as a Laplace representation withing working memory  
     end
     
     methods
         
-        function obj = Agent(k,Ck,numDecayRates,nSamples)  % constructor  
-            
-            obj.s = 1:numDecayRates;                                                    
-            obj.k = k;      
-            obj.Ck = Ck;
-            obj.laplaceRep.x = zeros(numDecayRates,nSamples.x);  
-            obj.laplaceRep.y = zeros(numDecayRates,nSamples.y);  
-            
+        function obj = Agent(k,Ck,numDecayRates,nSamples)  % Constructor           
+            obj.currentPos = WorkingMemory(k,Ck,numDecayRates,nSamples);
+            obj.futurePos  = WorkingMemory(k,Ck,numDecayRates,nSamples);           
         end
         
-        function obj = buildLaplaceRepresentation(obj,pos,f,landmarkIDX)   
+        function obj = buildLaplaceRepresentation(obj,indAxis,f,landmarkIDX,dim,cellAssembly)   
             
             % Builds a Laplace Transform 
             %
@@ -29,23 +22,24 @@ classdef Agent
             %   pos:        independent axis for the function f
             %   f:          function from which to build the Laplace Transform
             %   landmarkIDX:index of landmark in discrete units 
+            %   dim:        dimension on which to operate
             %
             % OUTPUT:
             %   laplaceRep: This is really the Laplace Transform over time [need
             %   to change this name, because "laplaceRep" is not really
             %   representative of what the variable contains.
-      
-            for idx = landmarkIDX.x                                                         % superimpose multiple impulse functions, one for each non-zero landmark in f   
-                for i = 1:length(obj.s)                                                     % for each decay rate
-                    tmpBasis = zeros(1,length(pos.x));                                      % initialize the i-th basis function
-                    tmpBasis(idx:end) = f.x(idx)*exp(-pos.x(1:end-idx+1)*obj.s(i));         % build the i-th basis function 
-                    obj.laplaceRep.x(i,:) = obj.laplaceRep.x(i,:) + tmpBasis;               % generate Laplace representation by superimposing the i-th basis
+            
+            for idx = landmarkIDX.(dim)                                                                     % superimpose multiple impulse functions, one for each non-zero landmark in f   
+                for i = 1:length(obj.currentPos.s)                                                          % for each decay rate
+                    tmpBasis = zeros(1,length(indAxis.(dim)));                                              % initialize the i-th basis function
+                    tmpBasis(idx:end) = f.(dim)(idx)*exp(-indAxis.(dim)(1:end-idx+1)*obj.currentPos.s(i));  % build the i-th basis function 
+                    obj.currentPos.laplaceRep.(dim)(i,:) = obj.currentPos.laplaceRep.(dim)(i,:) + tmpBasis; % generate Laplace representation by superimposing the i-th basis
                 end     % for i
             end         % for idx = idx_t_prime     
             
         end
         
-        function [f_tilde,x_star] = estimateInverseLaplace(obj)   
+        function [f_tilde,x_star] = estimateInverseLaplace(obj,dim,cellAssembly)   
             
             % Computes an inverse Laplace Transform by employing the Post 
             % approximation (1930).
@@ -54,28 +48,36 @@ classdef Agent
             % Agent class
             %   laplaceRep: F(s), the Laplace representation 
             %   Ck:         scaling constant
+            %   dim:        dimension on which to operate
             %
             % OUTPUT:
             %   f_tilde:    estimate of landmark position
             %   x_star:     log-scale independent axis on which f_tilde exists
             
-            der = obj.laplaceRep.x(:,end);                                                      
-            for iter = 1:obj.k                                                          % take k-th derivative  
-                der = obj.Ck(obj.k) * diff(der);
+            der = obj.currentPos.laplaceRep.(dim)(:,end);                                                      
+            for iter = 1:obj.currentPos.k                                                                   % take k-th derivative  
+                der = obj.currentPos.Ck(obj.currentPos.k) * diff(der);
             end
-            f_tilde = obj.s(1:numel(der)).^(obj.k+1) .* der';                           % Post approximation           
-            x_star = -obj.k * 1./obj.s(1:numel(der));        
+            f_tilde = obj.currentPos.s(1:numel(der)).^(obj.currentPos.k+1) .* der';                         % Post approximation           
+            x_star = -obj.currentPos.k * 1./obj.currentPos.s(1:numel(der));        
             
         end
         
-        function obj = translateLaplaceRepresentation(obj,delta)  
+        function obj = translateLaplaceRepresentation(obj,delta,dim,cellAssembly)  
             
             % Apply the unitary Laplace translation operator, multiplication in the
             % Laplace domain by an exponential function of s. We do this
             % here for every time in which the Laplace represention exists.
+            %
+            % INPUT
+            %   delta:  amount to translate
+            %   dim:    dimension on which to operate
+            %
+            % OUTPUT:
+            %   translated F(s)
             
-            [~,nCol] = size(obj.laplaceRep.x);
-            obj.laplaceRep.x = obj.laplaceRep.x .* repmat(exp(-obj.s * delta)',1,nCol);  
+            [~,nCol] = size(obj.currentPos.laplaceRep.(dim));
+            obj.(cellAssembly).laplaceRep.(dim) = obj.(cellAssembly).laplaceRep.(dim) .* repmat(exp(-obj.(cellAssembly).s * delta)',1,nCol);  
             
         end
         
@@ -89,7 +91,8 @@ classdef Agent
             % INPUT
             %   F(s):   Laplace representation internal to agent's working memory
             %   G(s):   Laplace representation internal to agent's working
-            %   memory or brought into working memory from long-term memory
+            %           memory or brought into working memory from long-term memory
+            %   dim:    dimension on which to operate
             %
             % OUTPUT:
             %   F(s)G(s)
@@ -106,7 +109,8 @@ classdef Agent
             % INPUT
             %   F(s):   Laplace representation internal to agent's working memory
             %   G(s):   Laplace representation internal to agent's working
-            %   memory or brought into working memory from long-term memory
+            %           memory or brought into working memory from long-term memory
+            %   dim:    dimension on which to operate
             %
             % OUTPUT:
             %   F(s)G(-s)
