@@ -5,13 +5,15 @@ classdef Agent
     properties
         currentPos  WorkingMemory       % [N x numSamples] per dimension, agent's current position as a Laplace representation within working memory
         futurePos   WorkingMemory       % [N x numSamples] per dimension, agent's future position as a Laplace representation withing working memory  
+        headDirection                   % degrees
     end
     
     methods
         
         function obj = Agent(k,Ck,numDecayRates,nSamples)  % Constructor           
             obj.currentPos = WorkingMemory(k,Ck,numDecayRates,nSamples);
-            obj.futurePos  = WorkingMemory(k,Ck,numDecayRates,nSamples);           
+            obj.futurePos  = WorkingMemory(k,Ck,numDecayRates,nSamples); 
+            obj.headDirection = 0;
         end
         
         function obj = buildLaplaceRepresentation(obj,indAxis,f,landmarkIDX,dim,cellAssembly)   
@@ -30,10 +32,10 @@ classdef Agent
             %   representative of what the variable contains.
             
             for idx = landmarkIDX.(dim)                                                                     % superimpose multiple impulse functions, one for each non-zero landmark in f   
-                for i = 1:length(obj.currentPos.s)                                                          % for each decay rate
+                for i = 1:length(obj.(cellAssembly).s)                                                          % for each decay rate
                     tmpBasis = zeros(1,length(indAxis.(dim)));                                              % initialize the i-th basis function
-                    tmpBasis(idx:end) = f.(dim)(idx)*exp(-indAxis.(dim)(1:end-idx+1)*obj.currentPos.s(i));  % build the i-th basis function 
-                    obj.currentPos.laplaceRep.(dim)(i,:) = obj.currentPos.laplaceRep.(dim)(i,:) + tmpBasis; % generate Laplace representation by superimposing the i-th basis
+                    tmpBasis(idx:end) = f.(dim)(idx)*exp(-indAxis.(dim)(1:end-idx+1)*obj.(cellAssembly).s(i));  % build the i-th basis function 
+                    obj.(cellAssembly).laplaceRep.(dim)(i,:) = obj.(cellAssembly).laplaceRep.(dim)(i,:) + tmpBasis; % generate Laplace representation by superimposing the i-th basis
                 end     % for i
             end         % for idx = idx_t_prime     
             
@@ -54,12 +56,12 @@ classdef Agent
             %   f_tilde:    estimate of landmark position
             %   x_star:     log-scale independent axis on which f_tilde exists
             
-            der = obj.currentPos.laplaceRep.(dim)(:,end);                                                      
-            for iter = 1:obj.currentPos.k                                                                   % take k-th derivative  
-                der = obj.currentPos.Ck(obj.currentPos.k) * diff(der);
+            der = obj.(cellAssembly).laplaceRep.(dim)(:,end);                                                      
+            for iter = 1:obj.currentPos.k                                                       % take k-th derivative  
+                der = obj.(cellAssembly).Ck(obj.(cellAssembly).k) * diff(der);
             end
-            f_tilde = obj.currentPos.s(1:numel(der)).^(obj.currentPos.k+1) .* der';                         % Post approximation           
-            x_star = -obj.currentPos.k * 1./obj.currentPos.s(1:numel(der));        
+            f_tilde = obj.(cellAssembly).s(1:numel(der)).^(obj.(cellAssembly).k+1) .* der';     % Post approximation           
+            x_star = obj.(cellAssembly).k * 1./obj.(cellAssembly).s(1:numel(der));        
             
         end
         
@@ -81,7 +83,7 @@ classdef Agent
             
         end
         
-        function obj = convolutionLaplaceRepresentation(obj,varargin)  
+        function obj = convolutionLaplaceRepresentation(obj,dim,cellAssembly,G)  
             
             % Apply the binary convolution operator in the Laplace domain.
             % This is pointwise multiplication of two Laplace representations.
@@ -97,9 +99,11 @@ classdef Agent
             % OUTPUT:
             %   F(s)G(s)
             
+            obj.(cellAssembly).laplaceRep.(dim) = obj.(cellAssembly).laplaceRep.(dim) .* G;
+            
         end
         
-        function obj = crossCorrLaplaceRepresentation(obj,varargin)  
+        function obj = crossCorrLaplaceRepresentation(obj,dim,cellAssembly,G) 
             
             % Apply the binary cross-correlation operator in the Laplace domain.
             % This is pointwise multiplication of two Laplace representations, one flipped.
@@ -114,6 +118,8 @@ classdef Agent
             %
             % OUTPUT:
             %   F(s)G(-s)
+            
+            obj.(cellAssembly).laplaceRep.(dim) = obj.(cellAssembly).laplaceRep.(dim) .* flip(G);
             
         end
                 
