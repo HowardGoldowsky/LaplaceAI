@@ -14,22 +14,22 @@
 % as summing discrete samples from t = t_prime to t = N. t = N is equivalent to
 % tau = 0 in the paper, the present moment. Each sample in f(t) has a phase
 % equal to t-t_prime and an amplitude, both which "scale" a superposition
-% of bases for that sample. 
+% of bases for that sample.
 
+for k=2:2:16
 % Initialize scenario
-clear;
 [indAxis,f,display,nSamples,dimWidth,telem] = initScenario();  
 
 % Initialize Agent
 numCellsEC = 100;                                       % number of cells in agent's Entorhinal Cortex (EC), the Laplace domain
-k = 10;                                                % used for calc of inverse Laplace; k = 4 was used in the cited paper
+%k = 10;                                                 % used for calc of inverse Laplace; k = 4 was used in the cited paper
 Ck = .072*(1:k);                                        % Initialize Ck for Post 1930 estimate of inverse Laplace transform
 robot = Agent(k,Ck,numCellsEC,nSamples);                % construct the virtual robot agent
 
 % Place the initial landmark in continuous space and calculate its index in
 % discrete space.
 trainingPoint = [0.25, 0.50];                                                   % position of the landmark from origin (meters)
-telem.truth = [telem.truth; trainingPoint];                                     % build telemetry log
+telem.truth = [telem.truth; trainingPoint];                                % build telemetry log
 landmarkIDX.x = getIndexToLandmark(trainingPoint(1),nSamples.x,dimWidth.x);     % index to landmark x dimension
 landmarkIDX.y = getIndexToLandmark(trainingPoint(2),nSamples.y,dimWidth.y);     % index to landmark y dimension
 
@@ -97,12 +97,13 @@ telem.robot = [telem.robot; [estViaPosX,estViaPosY]];
 % [f_current_tran_x,~] = robot.estimateInverseLaplace('x','currentPos');
 
 % Init display params and call display functions
-display.indAxis = indAxis.x;                            % Laplace representation display 
-
-display.f_tilde = f_via_x;                          % Inverse Laplace representation display
-%display.f_tilde_tran = f_future_y;
-display.estIndAxis = x_star_via;
+% display.indAxis = indAxis.x;                            % Laplace representation display 
+% 
+% display.f_tilde = f_via_x;                          % Inverse Laplace representation display
+% display.estIndAxis = x_star_via;
 
 display.telem = telem;
 displayFunctions(display,robot,'x','currentPos');       % call display function
+
+end % for k
            

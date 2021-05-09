@@ -20,14 +20,16 @@ function displayFunctions(display,robot,dim,cellAssembly)
     end
 
     if (display.SHOWPATH)
-        figure; hold on;
-        plot(display.telem.truth(:,1),display.telem.truth(:,2),'kx-','LineWidth',4); 
-        plot(display.telem.robot(:,1),display.telem.robot(:,2),'bo-','LineWidth',2)
+        figure(1); hold on;        
+        plot(display.telem.truth(:,1),display.telem.truth(:,2),'ko-','LineWidth',4); 
+        plot(display.telem.robot(:,1),display.telem.robot(:,2),'.-','LineWidth',1,'MarkerSize',12)      
+        text(max(display.telem.robot(:,1)),max(display.telem.robot(:,2)),num2str(robot.currentPos.k),'FontSize',12)
+        
         legend('Landmark Truth','Robot Estimates','FontSize',14,'Location','NorthWest');
-        title({'Robot Navigation Path Versus the True Landmark Locations'},'FontSize',14)
-        axis([-1 3 -1 3]);
-        xlabel('Meters','FontSize',14)
-        ylabel('Meters','FontSize',14)
+        title({'Robot Navigation Path Versus True Landmark Locations','for Different Values of k'},'FontSize',14)
+        axis([-.1 2.1 -.1 1.6]);
+        xlabel('Meters','FontSize',14,'FontWeight','bold')
+        ylabel('Meters','FontSize',14,'FontWeight','bold')
     end
     
 end
