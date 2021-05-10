@@ -2,7 +2,7 @@ function displayFunctions(display,robot,dim,cellAssembly)
 
     % Show what the Laplace transform looks like over time.
     if (display.SHOWBASIS)
-        figure;
+        figure(4);
         for i = 1:9  
             plot(display.indAxis,robot.(cellAssembly).laplaceRep.(dim)(i,:),'LineWidth',2); hold on;
         end
@@ -12,7 +12,7 @@ function displayFunctions(display,robot,dim,cellAssembly)
     end
 
     if (display.SHOWESTIMATE)
-        figure;
+        figure(3);
         plot(display.estIndAxis,display.f_tilde,'x-');
         %legend('f\_tilde','f\_tilde\_tran','FontSize',14,'Location','NorthWest');
         title({'Inverse Laplace Transform','Remembered Signal'},'FontSize',14)
@@ -30,6 +30,17 @@ function displayFunctions(display,robot,dim,cellAssembly)
         axis([-.1 2.1 -.1 1.6]);
         xlabel('Meters','FontSize',14,'FontWeight','bold')
         ylabel('Meters','FontSize',14,'FontWeight','bold')
+        
+        if (robot.currentPos.k==26)
+            figure(2); hold on
+            plot(2:2:26,display.telem.MSE,'rx-','LineWidth',2);
+            xlabel('k','FontSize',14,'FontWeight','bold')
+            ylabel('Mean Square Error at Via Point','FontSize',14,'FontWeight','bold')     
+            title({'Mean Square Error at Via Point, Versus k','100 Verses 500 Cells Entorhinal Cortex'},'FontSize',14,'FontWeight','bold');
+            legend('100 Cells EC','500 Cells EC','FontSize',14,'Location','NorthWest');
+        end
+        
+        
     end
     
 end

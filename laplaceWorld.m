@@ -16,7 +16,8 @@
 % equal to t-t_prime and an amplitude, both which "scale" a superposition
 % of bases for that sample.
 
-for k=2:2:16
+MSE = [];
+for k=2:2:26
 % Initialize scenario
 [indAxis,f,display,nSamples,dimWidth,telem] = initScenario();  
 
@@ -97,13 +98,15 @@ telem.robot = [telem.robot; [estViaPosX,estViaPosY]];
 % [f_current_tran_x,~] = robot.estimateInverseLaplace('x','currentPos');
 
 % Init display params and call display functions
-% display.indAxis = indAxis.x;                            % Laplace representation display 
-% 
-% display.f_tilde = f_via_x;                          % Inverse Laplace representation display
-% display.estIndAxis = x_star_via;
+display.indAxis = indAxis.x;                              % Laplace representation display 
 
+display.f_tilde = f_current_x;                                % Inverse Laplace representation display
+display.estIndAxis = x_star_current;
+
+MSE = [MSE; sqrt(sum([estViaPosX,estViaPosY] - viaPoint).^2)]; %#ok<AGROW> % Mean Squared Error of final position
+telem.MSE = MSE;
 display.telem = telem;
-displayFunctions(display,robot,'x','currentPos');       % call display function
+displayFunctions(display,robot,'x','currentPos');           % call display function
 
 end % for k
            

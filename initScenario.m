@@ -16,11 +16,11 @@ function [indAxis,f,display,nSamples,dimWidth,telem] = initScenario()
     f.y = zeros(nSamples.y,1);          % init external driving function; see Equation 2
     
     telem.truth = [0,0];                % recorded positions for calculating error performance 
-    telem.robot = [0,0];                
+    telem.robot = [0,0]; 
     
     % Display flags
-    display.SHOWBASIS = 0;
-    display.SHOWESTIMATE = 0;
+    display.SHOWBASIS = 1;
+    display.SHOWESTIMATE = 1;
     display.SHOWPATH = 1;
 
 end
