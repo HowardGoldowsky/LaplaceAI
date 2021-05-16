@@ -7,7 +7,7 @@ function displayFunctions(display,robot,dim,cellAssembly)
             plot(display.indAxis,robot.(cellAssembly).laplaceRep.(dim)(i,:),'LineWidth',2); hold on;
         end
         title({'Laplace Transform, F(s),','9 Slowest Time Constants'},'FontSize',14)
-        xlabel('Distance from Maze Boundary (m)','FontSize',14)
+        xlabel('Distance from Landmark (m)','FontSize',14)
         ylabel('Firing Rate','FontSize',14)
     end
 

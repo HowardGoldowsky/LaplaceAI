@@ -5,7 +5,7 @@ classdef Agent
     properties
         currentPos  WorkingMemory       % [N x numSamples] per dimension, agent's current position as a Laplace representation within working memory
         futurePos   WorkingMemory       % [N x numSamples] per dimension, agent's future position as a Laplace representation withing working memory  
-        headDirection                   % degrees
+        headDirection                   % degrees (not used)
     end
     
     methods
@@ -31,10 +31,10 @@ classdef Agent
             %   to change this name, because "laplaceRep" is not really
             %   representative of what the variable contains.
             
-            for idx = landmarkIDX.(dim)                                                                     % superimpose multiple impulse functions, one for each non-zero landmark in f   
-                for i = 1:length(obj.(cellAssembly).s)                                                          % for each decay rate
-                    tmpBasis = zeros(1,length(indAxis.(dim)));                                              % initialize the i-th basis function
-                    tmpBasis(idx:end) = f.(dim)(idx)*exp(-indAxis.(dim)(1:end-idx+1)*obj.(cellAssembly).s(i));  % build the i-th basis function 
+            for idx = landmarkIDX.(dim)                                                                             % superimpose multiple impulse functions, one for each non-zero landmark in f   
+                for i = 1:length(obj.(cellAssembly).s)                                                              % for each decay rate
+                    tmpBasis = zeros(1,length(indAxis.(dim)));                                                      % initialize the i-th basis function
+                    tmpBasis(idx:end) = f.(dim)(idx)*exp(-indAxis.(dim)(1:end-idx+1)*obj.(cellAssembly).s(i));      % build the i-th basis function 
                     obj.(cellAssembly).laplaceRep.(dim)(i,:) = obj.(cellAssembly).laplaceRep.(dim)(i,:) + tmpBasis; % generate Laplace representation by superimposing the i-th basis
                 end     % for i
             end         % for idx = idx_t_prime     
